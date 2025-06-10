@@ -1,0 +1,244 @@
+﻿<Window x:Class="GPIMSClient.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
+        Title="GPIMS Client Simulator" Height="600" Width="900"
+        MinHeight="500" MinWidth="700">
+
+    <Window.Resources>
+        <Style x:Key="StatusIndicator" TargetType="Ellipse">
+            <Setter Property="Width" Value="12"/>
+            <Setter Property="Height" Value="12"/>
+            <Setter Property="Fill" Value="Red"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsConnected}" Value="True">
+                    <Setter Property="Fill" Value="Green"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="HeaderStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Margin" Value="0,0,0,5"/>
+        </Style>
+
+        <Style x:Key="ConfigGroupBox" TargetType="GroupBox">
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Padding" Value="10"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="#2E3440" Padding="10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Text="GPIMS Client Simulator" 
+                          FontSize="18" FontWeight="Bold" Foreground="White"/>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Ellipse Style="{StaticResource StatusIndicator}" 
+                            VerticalAlignment="Center" Margin="0,0,5,0"/>
+                    <TextBlock x:Name="StatusText" Text="Disconnected" 
+                              Foreground="White" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Main Content -->
+        <Grid Grid.Row="1" Margin="10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="300"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Configuration Panel -->
+            <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <!-- Connection Configuration -->
+                    <GroupBox Header="Connection" Style="{StaticResource ConfigGroupBox}">
+                        <StackPanel>
+                            <TextBlock Text="Server URL:" Style="{StaticResource HeaderStyle}"/>
+                            <TextBox x:Name="ServerUrlTextBox" Text="http://localhost:5100" 
+                                    Margin="0,0,0,10"/>
+
+                            <TextBlock Text="Device ID:" Style="{StaticResource HeaderStyle}"/>
+                            <TextBox x:Name="DeviceIdTextBox" Text="GPIMS_Device_001" 
+                                    Margin="0,0,0,10"/>
+
+                            <Button x:Name="TestConnectionButton" Content="Test Connection" 
+                                   Click="TestConnectionButton_Click" Margin="0,0,0,5"/>
+                        </StackPanel>
+                    </GroupBox>
+
+                    <!-- Data Configuration -->
+                    <GroupBox Header="Data Configuration" Style="{StaticResource ConfigGroupBox}">
+                        <StackPanel>
+                            <TextBlock Text="Channel Count:" Style="{StaticResource HeaderStyle}"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                <Slider x:Name="ChannelCountSlider" Minimum="1" Maximum="128" 
+                                       Value="8" Width="120" ValueChanged="CountSlider_ValueChanged"/>
+                                <TextBlock x:Name="ChannelCountText" Text="8" 
+                                          VerticalAlignment="Center" Margin="10,0,0,0" MinWidth="30"/>
+                            </StackPanel>
+
+                            <TextBlock Text="Aux Data Count:" Style="{StaticResource HeaderStyle}"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                <Slider x:Name="AuxCountSlider" Minimum="0" Maximum="64" 
+                                       Value="4" Width="120" ValueChanged="CountSlider_ValueChanged"/>
+                                <TextBlock x:Name="AuxCountText" Text="4" 
+                                          VerticalAlignment="Center" Margin="10,0,0,0" MinWidth="30"/>
+                            </StackPanel>
+
+                            <TextBlock Text="CAN Data Count:" Style="{StaticResource HeaderStyle}"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                <Slider x:Name="CANCountSlider" Minimum="0" Maximum="32" 
+                                       Value="2" Width="120" ValueChanged="CountSlider_ValueChanged"/>
+                                <TextBlock x:Name="CANCountText" Text="2" 
+                                          VerticalAlignment="Center" Margin="10,0,0,0" MinWidth="30"/>
+                            </StackPanel>
+
+                            <TextBlock Text="LIN Data Count:" Style="{StaticResource HeaderStyle}"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                <Slider x:Name="LINCountSlider" Minimum="0" Maximum="16" 
+                                       Value="1" Width="120" ValueChanged="CountSlider_ValueChanged"/>
+                                <TextBlock x:Name="LINCountText" Text="1" 
+                                          VerticalAlignment="Center" Margin="10,0,0,0" MinWidth="30"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </GroupBox>
+
+                    <!-- Transmission Configuration -->
+                    <GroupBox Header="Transmission" Style="{StaticResource ConfigGroupBox}">
+                        <StackPanel>
+                            <TextBlock Text="Update Interval (ms):" Style="{StaticResource HeaderStyle}"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                <Slider x:Name="IntervalSlider" Minimum="100" Maximum="5000" 
+                                       Value="1000" Width="120" ValueChanged="IntervalSlider_ValueChanged"/>
+                                <TextBlock x:Name="IntervalText" Text="1000" 
+                                          VerticalAlignment="Center" Margin="10,0,0,0" MinWidth="50"/>
+                            </StackPanel>
+
+                            <CheckBox x:Name="AutoStartCheckBox" Content="Auto Start on Connection" 
+                                     IsChecked="True" Margin="0,0,0,10"/>
+
+                            <Button x:Name="StartStopButton" Content="Start Transmission" 
+                                   Click="StartStopButton_Click" Background="#4CAF50" 
+                                   Foreground="White" Padding="10,5"/>
+                        </StackPanel>
+                    </GroupBox>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Status and Log Panel -->
+            <Grid Grid.Column="1" Margin="10,0,0,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="200"/>
+                </Grid.RowDefinitions>
+
+                <!-- Statistics -->
+                <GroupBox Grid.Row="0" Header="Statistics" Margin="0,0,0,10">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" Margin="5">
+                            <TextBlock Text="Packets Sent:" FontWeight="Bold"/>
+                            <TextBlock x:Name="PacketsSentText" Text="0" FontSize="16" Foreground="Blue"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="1" Margin="5">
+                            <TextBlock Text="Success Rate:" FontWeight="Bold"/>
+                            <TextBlock x:Name="SuccessRateText" Text="0%" FontSize="16" Foreground="Green"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2" Margin="5">
+                            <TextBlock Text="Last Update:" FontWeight="Bold"/>
+                            <TextBlock x:Name="LastUpdateText" Text="-" FontSize="12"/>
+                        </StackPanel>
+                    </Grid>
+                </GroupBox>
+
+                <!-- Live Data Preview -->
+                <GroupBox Grid.Row="1" Header="Live Data Preview">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <TextBlock x:Name="LiveDataTextBlock" FontFamily="Consolas" 
+                                  FontSize="10" Background="#F5F5F5" Padding="10"
+                                  Text="No data being transmitted..." TextWrapping="Wrap"/>
+                    </ScrollViewer>
+                </GroupBox>
+
+                <!-- Communication Log -->
+                <GroupBox Grid.Row="2" Header="Communication Log">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <ScrollViewer Grid.Row="0" x:Name="LogScrollViewer" 
+                                     VerticalScrollBarVisibility="Auto">
+                            <ItemsControl x:Name="LogItemsControl">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border BorderBrush="#E0E0E0" BorderThickness="0,0,0,1" Padding="5,3">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+
+                                                <TextBlock Grid.Column="0" Text="{Binding Timestamp, StringFormat=HH:mm:ss}" 
+                                                          FontSize="10" Foreground="Gray" Margin="0,0,10,0"/>
+                                                <Ellipse Grid.Column="1" Width="8" Height="8" 
+                                                        Fill="{Binding StatusBrush}" Margin="0,0,10,0"/>
+                                                <TextBlock Grid.Column="2" Text="{Binding Message}" 
+                                                          FontSize="11" TextWrapping="Wrap"/>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+
+                        <Button Grid.Row="1" Content="Clear Log" HorizontalAlignment="Right" 
+                               Margin="0,5,0,0" Click="ClearLogButton_Click"/>
+                    </Grid>
+                </GroupBox>
+            </Grid>
+        </Grid>
+
+        <!-- Status Bar -->
+        <Border Grid.Row="2" Background="#ECEFF4" BorderBrush="#D8DEE9" BorderThickness="0,1,0,0">
+            <Grid Margin="10,5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" x:Name="StatusBarText" 
+                          Text="Ready" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="1" x:Name="TimeText" 
+                          Text="{Binding Source={x:Static sys:DateTime.Now}, StringFormat=yyyy-MM-dd HH:mm:ss}" 
+                          VerticalAlignment="Center"/>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>
